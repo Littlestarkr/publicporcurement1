@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>제1회 공공조달관리사 실전 모의고사</title>
+<style>
+    body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; background-color: #f4f7f6; color: #333; padding: 20px; max-width: 900px; margin: 0 auto; }
+    h1, h2 { color: #2c3e50; text-align: center; }
+    .notice { background: #e8f4f8; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 30px; font-weight: bold; }
+    .subject-title { background: #34495e; color: white; padding: 10px; margin-top: 40px; border-radius: 5px; }
+    .question-box { background: white; padding: 20px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .question-title { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; }
+    .options label { display: block; margin-bottom: 8px; cursor: pointer; padding: 8px; border-radius: 4px; transition: background 0.2s; }
+    .options label:hover { background: #f0f0f0; }
+    .explanation { display: none; margin-top: 15px; padding: 15px; background: #f9f9f9; border-left: 4px solid #27ae60; font-size: 0.95em; }
+    .btn-submit { display: block; width: 100%; padding: 15px; background: #e74c3c; color: white; border: none; font-size: 1.2em; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 30px; }
+    .btn-submit:hover { background: #c0392b; }
+    #result-board { display: none; background: white; padding: 20px; border: 2px solid #e74c3c; border-radius: 8px; margin-bottom: 30px; text-align: center; }
+    .correct-option { background: #d4efdf !important; font-weight: bold; }
+    .wrong-option { background: #f2d7d5 !important; }
+</style>
+</head>
+<body>
+
+<h1>📝 제1회 공공조달관리사 합격 대비 실전 모의고사</h1>
+<div class="notice">
+    안내: 본 모의고사는 실제 시험과 동일한 조건으로 보실 수 있도록 총 80문항을 제공합니다. 문제를 모두 푼 후 최하단의 [답안 제출] 버튼을 누르면 자동으로 채점되어 합격 여부와 해설을 확인할 수 있습니다.
+</div>
+
+<div id="result-board"></div>
+<div id="quiz-container"></div>
+<button id="submit-btn" class="btn-submit" onclick="gradeExam()">답안 제출 및 채점하기</button>
+
+<script>
+// 문항 데이터베이스 (여기에 나머지 문항을 동일한 형식으로 추가합니다)
+const quizData = [
+    {
+        id: 1,
+        subject: 1, // 1과목
+        question: "문 1. 공공조달의 본질적 특성 및 민간 구매와의 비교 설명 중 가장 옳지 않은 것은?",
+        options: [
+            "① 공공조달은 이윤 극대화가 아닌 공익 실현, 예산 집행의 효율성(VFM), 사회적 가치 창출을 본원적 목적으로 한다.",
+            "② 공공조달은 세금을 재원으로 하므로 법정 절차 준수, 정보의 대외 공개, 엄격한 법적 책임성이 요구된다.",
+            "③ 민간 구매의 7R 항목에는 Right Product, Right Price, Right Time, Right Quality, Right Quantity, Right Customer, Right Place가 포함되며, Right Regulation은 포함되지 않는다.",
+            "④ 공공조달은 예산 절감이 최우선이므로 품목의 제반 사양과 상관없이 항상 최초 구매 단가가 가장 낮은 최저가 투찰자를 낙찰자로 선정해야 한다."
+        ],
+        answer: 4, // 4번이 정답
+        explanation: "[정답] ④<br><br>해설: 공공조달은 단순 최저가 구매를 넘어 자산의 취득부터 운영, 유지보수, 폐기까지의 생애주기 전체 비용과 품질을 종합적으로 고려하는 비용 대비 가치(VFM: Value for Money)를 지향합니다. 따라서 오직 최초 구매 가격만을 기준으로 최저가를 낙찰하는 것은 올바르지 않습니다."
+    },
+    {
+        id: 31,
+        subject: 2, // 2과목
+        question: "문 31. Kraljic의 구매 포트폴리오 매트릭스에서 '공급 위험도'는 높으나 '재무적 영향(지출 규모)'은 작은 품목 유형과 그에 적합한 조달 전략의 연결로 옳은 것은?",
+        options: [
+            "① 전략(Strategic) 품목 - 장기 파트너십 구축",
+            "② 병목(Bottleneck) 품목 - 공급 안정성 확보 및 재고 관리, 대체재 개발",
+            "③ 레버리지(Leverage) 품목 - 다수 공급자 간 가격 경쟁 유도",
+            "④ 일상(Routine) 품목 - 전자조달 프로세스 간소화"
+        ],
+        answer: 2,
+        explanation: "[정답] ②<br><br>해설: Kraljic 매트릭스에서 공급 위험도는 높으나 지출 규모가 작은 품목은 '병목(Bottleneck) 품목'입니다. 공급 차질 시 사업 전체가 마비되므로 공급 수급 안정성 확보, 재고 관리 및 대체재 개발이 핵심 전략입니다."
+    },
+    {
+        id: 51,
+        subject: 3, // 3과목
+        question: "문 51. 공공조달 3대 보증금 체계에 관한 설명으로 가장 옳지 않은 것은?",
+        options: [
+            "① 입찰보증금: 입찰금액의 5% 이상 (한시적 특례 시 2.5% 이상)",
+            "② 계약보증금: 계약금액의 10% 이상 (한시적 특례 시 5% 이상)",
+            "③ 하자보수보증금: 준공/납품검사 완료 후 대가 지급 전 예치",
+            "④ 낙찰자가 정당한 이유 없이 10일 이내 계약을 체결하지 않아 귀속된 입찰보증금은 해당 낙찰자에게 전액 환급된다."
+        ],
+        answer: 4,
+        explanation: "[정답] ④<br><br>해설: 낙찰자가 정당한 사유 없이 10일 이내에 계약을 체결하지 않을 경우 예치된 입찰보증금은 국고 또는 지자체 세입으로 전액 귀속됩니다."
+    }
+];
+
+const subjectNames = {
+    1: "제1과목: 공공조달과 법제도 이해 (30문항)",
+    2: "제2과목: 공공조달계획 수립 및 분석 (20문항)",
+    3: "제3과목: 공공계약관리 (30문항)"
+};
+
+function renderQuiz() {
+    const container = document.getElementById('quiz-container');
+    let currentSubject = 0;
+
+    quizData.forEach((q, index) => {
+        if (q.subject !== currentSubject) {
+            currentSubject = q.subject;
+            container.innerHTML += `<h2 class="subject-title">${subjectNames[currentSubject]}</h2>`;
+        }
+
+        let optionsHtml = '';
+        q.options.forEach((opt, i) => {
+            optionsHtml += `
+                <label id="label-q${q.id}-opt${i+1}">
+                    <input type="radio" name="q${q.id}" value="${i+1}"> ${opt}
+                </label>
+            `;
+        });
+
+        container.innerHTML += `
+            <div class="question-box" id="box-q${q.id}">
+                <div class="question-title">${q.question}</div>
+                <div class="options">${optionsHtml}</div>
+                <div class="explanation" id="exp-q${q.id}">${q.explanation}</div>
+            </div>
+        `;
+    });
+}
+
+function gradeExam() {
+    let subjectScores = { 1: { correct: 0, total: 30 }, 2: { correct: 0, total: 20 }, 3: { correct: 0, total: 30 } };
+    let unselected = false;
+
+    quizData.forEach(q => {
+        const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+        if (!selected) unselected = true;
+    });
+
+    if (unselected) {
+        if(!confirm("풀지 않은 문제가 있습니다. 그래도 제출하시겠습니까?")) return;
+    }
+
+    quizData.forEach(q => {
+        const selected = document.querySelector(`input[name="q${q.id}"]:checked`);
+        const userAns = selected ? parseInt(selected.value) : 0;
+        
+        // 정답 및 오답 하이라이트
+        document.getElementById(`label-q${q.id}-opt${q.answer}`).classList.add('correct-option');
+        if (userAns !== 0 && userAns !== q.answer) {
+            document.getElementById(`label-q${q.id}-opt${userAns}`).classList.add('wrong-option');
+        }
+
+        // 해설 노출
+        document.getElementById(`exp-q${q.id}`).style.display = 'block';
+
+        // 채점 연산
+        if (userAns === q.answer) {
+            subjectScores[q.subject].correct++;
+        }
+        
+        // 라디오 버튼 비활성화
+        document.getElementsByName(`q${q.id}`).forEach(el => el.disabled = true);
+    });
+
+    // 점수 계산 (각 과목 100점 만점 환산)
+    const score1 = Math.round((subjectScores[1].correct / subjectScores[1].total) * 100);
+    const score2 = Math.round((subjectScores[2].correct / subjectScores[2].total) * 100);
+    const score3 = Math.round((subjectScores[3].correct / subjectScores[3].total) * 100);
+    const average = Math.round((score1 + score2 + score3) / 3);
+
+    let passFail = "합격";
+    let message = "축하합니다! 합격 기준을 충족하셨습니다.";
+    
+    if (score1 < 40 || score2 < 40 || score3 < 40) {
+        passFail = "불합격 (과락 발생)";
+        message = "과락이 발생했습니다. 40점 미만인 과목을 집중적으로 복습해 주세요.";
+    } else if (average < 60) {
+        passFail = "불합격 (평균 미달)";
+        message = "평균 점수가 60점에 미달합니다. 전체적인 복습이 필요합니다.";
+    }
+
+    const resultBoard = document.getElementById('result-board');
+    resultBoard.style.display = 'block';
+    resultBoard.innerHTML = `
+        <h2>📊 최종 채점 결과</h2>
+        <p><b>제1과목:</b> ${score1}점 &nbsp;|&nbsp; <b>제2과목:</b> ${score2}점 &nbsp;|&nbsp; <b>제3과목:</b> ${score3}점</p>
+        <h3 style="color: #c0392b;">총 평균: ${average}점 [ ${passFail} ]</h3>
+        <p>${message}</p>
+        <p style="font-size: 0.9em; color: #555;">(하단으로 스크롤하여 문제별 해설을 확인하세요)</p>
+    `;
+    
+    document.getElementById('submit-btn').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.onload = renderQuiz;
+</script>
+</body>
+</html>
